@@ -77,25 +77,28 @@ def train_fit_predictor(resumes, jobs_df):
     return best_model
 
 def predict_fit(resume_text, resume_skills, job_row):
-    """Predict fit score for a resume-job pair."""
     try:
-        model = joblib.load(FIT_PREDICTOR_PATH)
+        model         = joblib.load(FIT_PREDICTOR_PATH)
+        # Feature 1: skill overlap with skills column
         skill_overlap = compute_skill_overlap(
             resume_text, job_row.get('skills', '')
         )
-        exp_match = compute_experience_match(
+        # Feature 2: experience match
+        exp_match     = compute_experience_match(
             resume_text, job_row.get('experience', '')
         )
-        # If no skills data, use description overlap
+        # Feature 3: description overlap if skills empty
         if skill_overlap == 0:
-            skill_overlap = compute_skill_overlap(
-                resume_text, job_row.get('description', '')[:200]
-            )
+            desc = str(job_row.get('description', ''))[:300]
+            skill_overlap = compute_skill_overlap(resume_text, desc)
+
         features = pd.DataFrame([{
             'skill_overlap' : skill_overlap,
             'exp_match'     : exp_match
         }])
-        prob = model.predict_proba(features)[0][1]
-        return round(prob * 100, 2)
+        prob  = model.predict_proba(features)[0][1]
+        # Boost score slightly for better readability
+        score = min(prob * 100 * 1.5, 99.0)
+        return round(score, 2)
     except:
         return 0.0

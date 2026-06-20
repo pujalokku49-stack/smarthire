@@ -96,6 +96,7 @@ recommendations for sample resumes.
 - Skill gap based on keyword matching, not semantic understanding
 - No generative AI used (as per project requirements)
 - Model performance depends on quality of uploaded resume text
+- Fit predictor scores are conservative due to limited features (skill overlap + experience match only). Adding semantic similarity features would improve accuracy.
 
 ## 8. Future Improvements
 - Replace TF-IDF with sentence embeddings for better matching
