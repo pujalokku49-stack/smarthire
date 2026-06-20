@@ -5,7 +5,6 @@ from src.config import RAW_DATA_DIR
 def load_resumes():
     path = os.path.join(RAW_DATA_DIR, "resume_dataset.csv")
     df = pd.read_csv(path)
-    # Actual columns: ['Category', 'Resume']
     return df[["Resume", "Category"]]
 
 def load_jobs():
@@ -15,7 +14,8 @@ def load_jobs():
     frames = []
 
     # === NAUKRI ===
-    # Actual columns: Job Title, Key Skills, Location, Role Category
+    # Actual columns: Job Title, Key Skills, Location, Role Category,
+    # Job Experience Required
     if os.path.exists(naukri_path):
         naukri = pd.read_csv(naukri_path)
         naukri = naukri.rename(columns={
@@ -25,28 +25,36 @@ def load_jobs():
             "Role Category"          : "company",
             "Job Experience Required": "experience"
         })
-        naukri["description"] = naukri["skills"].fillna("") + " " + naukri.get("Functional Area", "").fillna("")
-        frames.append(naukri[["title", "company", "location", "skills", "description"]])
+        naukri["description"] = (
+            naukri["skills"].fillna("") + " " +
+            naukri.get("Functional Area", pd.Series([""] * len(naukri))).fillna("")
+        )
+        frames.append(naukri[["title", "company", "location",
+                               "skills", "description", "experience"]])
 
     # === LINKEDIN ===
-    # Actual columns: title, company_name, location, skills_desc, description
+    # Actual columns: title, company_name, location, skills_desc,
+    # description, formatted_experience_level
     if os.path.exists(linkedin_path):
         linkedin = pd.read_csv(linkedin_path)
         linkedin = linkedin.rename(columns={
-            "title"       : "title",
-            "company_name": "company",
-            "location"    : "location",
-            "skills_desc" : "skills",
-            "description" : "description"
+            "title"                    : "title",
+            "company_name"             : "company",
+            "location"                 : "location",
+            "skills_desc"              : "skills",
+            "description"              : "description",
+            "formatted_experience_level": "experience"
         })
-        frames.append(linkedin[["title", "company", "location", "skills", "description"]])
+        frames.append(linkedin[["title", "company", "location",
+                                 "skills", "description", "experience"]])
 
-    # === MERGE ===
+    # === MERGE both datasets ===
     df = pd.concat(frames, ignore_index=True)
     df.drop_duplicates(inplace=True)
     df.dropna(subset=["title", "description"], inplace=True)
     df.fillna("", inplace=True)
     df.reset_index(drop=True, inplace=True)
 
-    print(f"✅ Total jobs loaded: {len(df)}")
+    print(f"✅ Total jobs in merged corpus: {len(df)}")
+    print(f"✅ Columns: {df.columns.tolist()}")
     return df
