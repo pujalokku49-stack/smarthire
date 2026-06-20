@@ -78,12 +78,24 @@ def train_fit_predictor(resumes, jobs_df):
 
 def predict_fit(resume_text, resume_skills, job_row):
     """Predict fit score for a resume-job pair."""
-    model = joblib.load(FIT_PREDICTOR_PATH)
-    skill_overlap = compute_skill_overlap(resume_skills, job_row['skills'])
-    exp_match     = compute_experience_match(resume_text, job_row['experience'])
-    features      = pd.DataFrame([{
-        'skill_overlap' : skill_overlap,
-        'exp_match'     : exp_match
-    }])
-    prob = model.predict_proba(features)[0][1]
-    return round(prob * 100, 2)
+    try:
+        model = joblib.load(FIT_PREDICTOR_PATH)
+        skill_overlap = compute_skill_overlap(
+            resume_text, job_row.get('skills', '')
+        )
+        exp_match = compute_experience_match(
+            resume_text, job_row.get('experience', '')
+        )
+        # If no skills data, use description overlap
+        if skill_overlap == 0:
+            skill_overlap = compute_skill_overlap(
+                resume_text, job_row.get('description', '')[:200]
+            )
+        features = pd.DataFrame([{
+            'skill_overlap' : skill_overlap,
+            'exp_match'     : exp_match
+        }])
+        prob = model.predict_proba(features)[0][1]
+        return round(prob * 100, 2)
+    except:
+        return 0.0
