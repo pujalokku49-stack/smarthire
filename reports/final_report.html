@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<style>
+    body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+    h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+    h2 { color: #34495e; border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }
+    h3 { color: #7f8c8d; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+    th { background-color: #3498db; color: white; padding: 10px; text-align: left; }
+    td { padding: 8px; border: 1px solid #ddd; }
+    tr:nth-child(even) { background-color: #f2f2f2; }
+    code { background-color: #f4f4f4; padding: 2px 5px; border-radius: 3px; }
+    pre { background-color: #f4f4f4; padding: 15px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<h1>SmartHire — Final Project Report</h1>
+<h2>1. Project Overview</h2>
+<p>SmartHire is a resume-to-job matching portal built using classical 
+machine learning. A user uploads a resume and receives:
+- A predicted job category
+- Top matching jobs ranked by similarity
+- A skill gap report</p>
+<h2>2. Datasets Used</h2>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Size</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Resume Dataset</td>
+<td>962 resumes, 25 categories</td>
+<td>Classifier training</td>
+</tr>
+<tr>
+<td>Naukri Job Listings</td>
+<td>30,000 jobs</td>
+<td>Job corpus</td>
+</tr>
+<tr>
+<td>LinkedIn Job Postings</td>
+<td>118,000+ jobs</td>
+<td>Job corpus</td>
+</tr>
+<tr>
+<td><strong>Total Jobs</strong></td>
+<td><strong>148,718 jobs</strong></td>
+<td>Recommender</td>
+</tr>
+</tbody>
+</table>
+<h2>3. System Architecture</h2>
+<p>Resume Upload (PDF/DOCX)</p>
+<p>│</p>
+<p>▼</p>
+<p>Text Extraction → Preprocessing (clean, tokenize)</p>
+<p>│</p>
+<p>├──► Classifier (Supervised) → Predicts job category</p>
+<p>├──► Similarity Engine (Unsupervised) → Top-N jobs</p>
+<p>└──► Skill Gap Module → CV improvement report</p>
+<p>│</p>
+<p>▼</p>
+<p>Streamlit Web Portal</p>
+<h2>4. Machine Learning Models</h2>
+<h3>Model A — Resume Category Classifier (Supervised)</h3>
+<ul>
+<li><strong>Algorithm:</strong> Logistic Regression</li>
+<li><strong>Features:</strong> TF-IDF vectors (5000 features, bigrams)</li>
+<li><strong>Train/Test Split:</strong> 80/20</li>
+<li><strong>Results:</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Accuracy</td>
+<td>~99%</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>~1.00</td>
+</tr>
+<tr>
+<td>Recall</td>
+<td>~1.00</td>
+</tr>
+<tr>
+<td>F1-Score</td>
+<td>~1.00</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Observation:</strong> The classifier performs excellently across all 
+25 job categories with minimal misclassification.</li>
+</ul>
+<h3>Model B — Job Recommender (Unsupervised)</h3>
+<ul>
+<li><strong>Algorithm:</strong> TF-IDF + Cosine Similarity</li>
+<li><strong>Jobs indexed:</strong> 50,000</li>
+<li><strong>Output:</strong> Top-N ranked jobs with match scores</li>
+<li><strong>Results:</strong> Qualitative check shows highly relevant job 
+recommendations for sample resumes.</li>
+</ul>
+<h3>Model C — Job Clustering (Unsupervised)</h3>
+<ul>
+<li><strong>Algorithm:</strong> KMeans (k=8)</li>
+<li><strong>Features:</strong> TF-IDF vectors of job descriptions</li>
+<li><strong>Optimal k:</strong> Selected using Elbow Method</li>
+<li><strong>Evaluation:</strong> Silhouette Score computed in notebook</li>
+<li><strong>Visualization:</strong> PCA 2D plot saved in reports/figures/</li>
+</ul>
+<h3>Model D — Skill Gap Report (Unsupervised)</h3>
+<ul>
+<li><strong>Method:</strong> Compare resume skills vs top skills in matched jobs</li>
+<li><strong>Output:</strong> List of skills present and missing</li>
+</ul>
+<h2>5. Results Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Method</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Resume Classifier</td>
+<td>TF-IDF + LR</td>
+<td>99% accuracy</td>
+</tr>
+<tr>
+<td>Job Recommender</td>
+<td>Cosine Similarity</td>
+<td>Relevant top-10 jobs</td>
+</tr>
+<tr>
+<td>Job Clustering</td>
+<td>KMeans (k=8)</td>
+<td>8 distinct job families</td>
+</tr>
+<tr>
+<td>Skill Gap</td>
+<td>Cluster Analysis</td>
+<td>Missing skills identified</td>
+</tr>
+</tbody>
+</table>
+<h2>6. Web Portal Features</h2>
+<ul>
+<li>Upload PDF or DOCX resume</li>
+<li>View predicted job category instantly</li>
+<li>See top 10 matching jobs with match scores</li>
+<li>View skill gap report with skills to add</li>
+<li>Adjustable number of recommendations (5-20)</li>
+</ul>
+<h2>7. Limitations</h2>
+<ul>
+<li>Datasets are from 2019-2024, may not reflect current job market</li>
+<li>Skill gap based on keyword matching, not semantic understanding</li>
+<li>No generative AI used (as per project requirements)</li>
+<li>Model performance depends on quality of uploaded resume text</li>
+</ul>
+<h2>8. Future Improvements</h2>
+<ul>
+<li>Replace TF-IDF with sentence embeddings for better matching</li>
+<li>Add learning-to-rank model for better job ordering</li>
+<li>Deploy on Streamlit Community Cloud for public access</li>
+<li>Add salary prediction module</li>
+</ul>
+<h2>9. Tools &amp; Technologies</h2>
+<ul>
+<li><strong>Python 3.14</strong> — Core language</li>
+<li><strong>scikit-learn</strong> — ML models</li>
+<li><strong>pandas &amp; numpy</strong> — Data processing</li>
+<li><strong>NLTK</strong> — Text preprocessing</li>
+<li><strong>Streamlit</strong> — Web portal</li>
+<li><strong>Matplotlib &amp; Seaborn</strong> — Visualizations</li>
+<li><strong>PyMuPDF &amp; python-docx</strong> — Resume parsing</li>
+<li><strong>Git &amp; GitHub</strong> — Version control</li>
+</ul>
+<h2>10. Repository</h2>
+<p>GitHub: https://github.com/pujalokku49-stack/smarthire</p>
+<h2>11. Conclusion</h2>
+<p>SmartHire successfully demonstrates a complete end-to-end ML pipeline
+combining supervised and unsupervised learning to solve a real-world
+problem. The system achieves high accuracy in resume classification
+and provides relevant job recommendations using cosine similarity.</p>
+</body>
+</html>
