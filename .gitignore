@@ -4,5 +4,7 @@ __pycache__/
 *.pkl
 .env
 data/raw/
+data/interim/
+data/processed/
 *.zip
 .ipynb_checkpoints/
