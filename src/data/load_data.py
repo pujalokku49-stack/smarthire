@@ -14,8 +14,6 @@ def load_jobs():
     frames = []
 
     # === NAUKRI ===
-    # Actual columns: Job Title, Key Skills, Location, Role Category,
-    # Job Experience Required
     if os.path.exists(naukri_path):
         naukri = pd.read_csv(naukri_path)
         naukri = naukri.rename(columns={
@@ -23,18 +21,24 @@ def load_jobs():
             "Key Skills"             : "skills",
             "Location"               : "location",
             "Role Category"          : "company",
-            "Job Experience Required": "experience"
+            "Job Experience Required": "experience",
+            "Job Salary"             : "salary"
         })
         naukri["description"] = (
             naukri["skills"].fillna("") + " " +
-            naukri.get("Functional Area", pd.Series([""] * len(naukri))).fillna("")
+            naukri.get("Functional Area",
+            pd.Series([""] * len(naukri))).fillna("")
+        )
+        # Clean salary
+        naukri["salary"] = naukri["salary"].str.strip()
+        naukri["salary"] = naukri["salary"].replace(
+            "Not Disclosed by Recruiter", ""
         )
         frames.append(naukri[["title", "company", "location",
-                               "skills", "description", "experience"]])
+                               "skills", "description",
+                               "experience", "salary"]])
 
     # === LINKEDIN ===
-    # Actual columns: title, company_name, location, skills_desc,
-    # description, formatted_experience_level
     if os.path.exists(linkedin_path):
         linkedin = pd.read_csv(linkedin_path)
         linkedin = linkedin.rename(columns={
@@ -43,12 +47,14 @@ def load_jobs():
             "location"                 : "location",
             "skills_desc"              : "skills",
             "description"              : "description",
-            "formatted_experience_level": "experience"
+            "formatted_experience_level": "experience",
+            "med_salary"               : "salary"
         })
         frames.append(linkedin[["title", "company", "location",
-                                 "skills", "description", "experience"]])
+                                 "skills", "description",
+                                 "experience", "salary"]])
 
-    # === MERGE both datasets ===
+    # === MERGE ===
     df = pd.concat(frames, ignore_index=True)
     df.drop_duplicates(inplace=True)
     df.dropna(subset=["title", "description"], inplace=True)

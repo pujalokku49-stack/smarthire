@@ -14,4 +14,9 @@ def recommend_jobs(resume_text, jobs_df, vectorizer, job_matrix, top_n=TOP_N_JOB
     top_idx    = np.argsort(scores)[::-1][:top_n]
     results    = jobs_df.iloc[top_idx].copy()
     results["match_score"] = (scores[top_idx] * 100).round(2)
-    return results[["title", "company", "location", "skills", "match_score"]]
+
+    # Include all available columns
+    cols = ["title", "company", "location", "skills",
+            "experience", "salary", "match_score"]
+    available_cols = [c for c in cols if c in results.columns]
+    return results[available_cols]

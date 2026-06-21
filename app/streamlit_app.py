@@ -112,8 +112,7 @@ if uploaded:
         return f"color: {color}; font-weight: bold"
 
     st.dataframe(
-        results[['title', 'company', 'location',
-                 'skills', 'match_score', 'fit_score_%']].style.map(
+        results.style.map(
             color_score, subset=["match_score", "fit_score_%"]
         ),
         use_container_width=True
