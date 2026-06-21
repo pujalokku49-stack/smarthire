@@ -29,10 +29,11 @@ def load_models():
     vectorizer  = joblib.load("models/tfidf_vectorizer.pkl")
     job_matrix  = joblib.load("models/job_matrix.pkl")
     jobs_df     = joblib.load("models/jobs_df.pkl")
-    return vectorizer, job_matrix, jobs_df
+    km          = joblib.load("models/kmeans_model.pkl")
+    return vectorizer, job_matrix, jobs_df, km
 
 with st.spinner("⏳ Loading models..."):
-    vectorizer, job_matrix, jobs_df = load_models()
+    vectorizer, job_matrix, jobs_df, km = load_models()
 st.success("✅ Models loaded!")
 
 # ── Sidebar ───────────────────────────────────────────────
@@ -53,13 +54,11 @@ uploaded = st.file_uploader(
 )
 
 if uploaded:
-    # Save temp file
     suffix = os.path.splitext(uploaded.name)[1]
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as f:
         f.write(uploaded.read())
         tmp_path = f.name
 
-    # Parse resume
     with st.spinner("📖 Parsing resume..."):
         raw_text = parse_resume(tmp_path)
         clean    = clean_text(raw_text)
@@ -103,7 +102,6 @@ if uploaded:
             fit_scores.append(score)
         results['fit_score_%'] = fit_scores
 
-    # Color match score
     def color_score(val):
         if val >= 30:
             color = "green"
@@ -114,7 +112,7 @@ if uploaded:
         return f"color: {color}; font-weight: bold"
 
     st.dataframe(
-        results[['title', 'company', 'location', 
+        results[['title', 'company', 'location',
                  'skills', 'match_score', 'fit_score_%']].style.map(
             color_score, subset=["match_score", "fit_score_%"]
         ),
@@ -140,9 +138,22 @@ if uploaded:
 
     st.divider()
 
-    # ── Row 4: Skill Gap Report ───────────────────────────
+    # ── Row 4: Skill Gap vs Target Cluster ────────────────
     st.subheader("📊 Skill Gap Report")
-    gap = get_skill_gap(clean, results)
+
+    try:
+        resume_vec   = vectorizer.transform([clean])
+        cluster_id   = km.predict(resume_vec)[0]
+        cluster_jobs = jobs_df[jobs_df['cluster'] == cluster_id]
+        if len(cluster_jobs) > 0:
+            gap = get_skill_gap(clean, cluster_jobs)
+            st.caption(f"📌 Comparing against Cluster {cluster_id} ({len(cluster_jobs)} similar jobs)")
+        else:
+            gap = get_skill_gap(clean, results)
+            st.caption("📌 Comparing against top matched jobs")
+    except:
+        gap = get_skill_gap(clean, results)
+        st.caption("📌 Comparing against top matched jobs")
 
     col6, col7 = st.columns(2)
     with col6:
@@ -163,12 +174,10 @@ if uploaded:
 
     st.divider()
 
-    # ── Footer ────────────────────────────────────────────
     st.markdown(
         "**SmartHire** — Built with ❤️ using Python, scikit-learn & Streamlit"
     )
 
-    # Cleanup temp file
     os.unlink(tmp_path)
 
 else:
